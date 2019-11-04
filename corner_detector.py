@@ -11,7 +11,9 @@
     - Input img: H × W matrix representing the gray scale input image.
     - Output cimg: H × W matrix representing the corner metric matrix.
 '''
-
+from cv2 import cornerHarris
 def corner_detector(img):
   # Your Code Here
+  # print(type(img[0,0]))
+  cimg = cornerHarris(img, 10, 3, 0.001)
   return cimg
