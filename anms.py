@@ -1,7 +1,7 @@
 '''
   File name: anms.py
-  Author:
-  Date created:
+  Author: Lishuo Pan
+  Date created: Nov 3, 2019
 '''
 
 '''
@@ -20,7 +20,7 @@ def anms(cimg, max_pts):
   H, W = cimg.shape
   # corner_threshold is designed to filter out
   # the corner we want to consider.
-  corner_threshold = 0.1
+  corner_threshold = 0.01
   # up_range is only consider the filtered corner
   # in this range [1, up_range]
   up_range = 1.1
@@ -31,7 +31,7 @@ def anms(cimg, max_pts):
 
   # set non-cornor element to 0
   filtered_vect_cimg = vect_cimg.copy()
-  filtered_vect_cimg[filtered_vect_cimg < corner_threshold] = 0
+  filtered_vect_cimg[filtered_vect_cimg < corner_threshold*filtered_vect_cimg.max()] = 0
 
   #
   coor_x_list = list()

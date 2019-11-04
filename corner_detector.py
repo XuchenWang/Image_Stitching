@@ -1,7 +1,7 @@
 '''
   File name: corner_detector.py
-  Author:
-  Date created:
+  Author:Lishuo Pan
+  Date created: Nov 3, 2019
 '''
 
 '''
