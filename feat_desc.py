@@ -1,7 +1,7 @@
 '''
   File name: feat_desc.py
-  Author:
-  Date created:
+  Author: Xuchen Wang
+  Date created: Nov 3, 2019
 '''
 
 '''
@@ -15,6 +15,38 @@
     - Outpuy descs: 64 × N matrix, with column i being the 64 dimensional descriptor (8 × 8 grid linearized) computed at location (xi , yi) in img.
 '''
 
+import numpy as np
+
+
 def feat_desc(img, x, y):
-  # Your Code Here
+  N = len(x)
+  descs = np.zeros([64,N])
+  img = np.pad(img, ((20, 20), (20, 20)), 'constant')
+  x = x+20
+  y = y+20
+  Ig = img.astype(np.float64())
+  [gradx, grady] = np.gradient(Ig)
+  e = np.abs(gradx) + np.abs(grady)
+
+  for i in range(N):
+    x_cor = x[i]
+    y_cor = y[i]
+    desc_col = oneDesc(x_cor, y_cor, e)   #get one column for descs
+    descs[:,i] = desc_col
+
   return descs
+
+def oneDesc(x_cor, y_cor, e):
+  desc_col = []
+  x = x_cor-19
+  y = y_cor-19
+  for i in range(8):
+    y = y + i*5
+    for j in range(8):
+      x = x + j*5
+      max_mag = np.amax(e[y:y+5, x:x+5])
+      desc_col.append(max_mag)
+
+  desc_col = np.asarray(desc_col)
+  desc_col = (desc_col - desc_col.mean()) / desc_col.std()
+  return desc_col
