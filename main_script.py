@@ -8,7 +8,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    file_name = "middle.jpg"
+    file_name = "test.jpg"
     # read in RGB matrix
     I = np.array(Image.open(file_name).convert('RGB'))
     # convert the RGB into gray image

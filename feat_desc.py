@@ -17,36 +17,66 @@
 
 import numpy as np
 
+from PIL import Image
+from helper import rgb2gray
+from corner_detector import corner_detector
 
 def feat_desc(img, x, y):
   N = len(x)
+  # print(N)
   descs = np.zeros([64,N])
   img = np.pad(img, ((20, 20), (20, 20)), 'constant')
+  # print(img.shape)
   x = x+20
   y = y+20
   Ig = img.astype(np.float64())
   [gradx, grady] = np.gradient(Ig)
   e = np.abs(gradx) + np.abs(grady)
+  # print(e.shape)
+  # print(e[0,:])
 
   for i in range(N):
     x_cor = x[i]
     y_cor = y[i]
+    # if i < 2: #testing
+    #   print("=========",i)
     desc_col = oneDesc(x_cor, y_cor, e)   #get one column for descs
     descs[:,i] = desc_col
 
   return descs
 
 def oneDesc(x_cor, y_cor, e):
+  # print('e-shape',e.shape)
   desc_col = []
-  x = x_cor-19
-  y = y_cor-19
+  x_start = x_cor-19
+  # print("x_start:", x_start)
+  y_start = y_cor-19
+  # print("y_start:", x_start)
+  # print('.....')
   for i in range(8):
-    y = y + i*5
+    y = y_start + i*5
+    # print("y:", y)
     for j in range(8):
-      x = x + j*5
+      x = x_start + j*5
+      # print("x:", x)
+      # print(e[y:y+5, x:x+5])
       max_mag = np.amax(e[y:y+5, x:x+5])
       desc_col.append(max_mag)
 
   desc_col = np.asarray(desc_col)
   desc_col = (desc_col - desc_col.mean()) / desc_col.std()
   return desc_col
+
+#
+# I = np.array(Image.open("test.jpg").convert('RGB'))
+# im_gray = rgb2gray(I)
+# cimg = corner_detector(im_gray)
+# cimg[cimg<0.01*cimg.max()]=0
+# # print(cimg)
+# y,x = np.nonzero(cimg)
+# # print(im_gray.shape)
+# # print(len(x))
+# # print(len(y))
+# descs = feat_desc(im_gray, x, y)
+# # print(descs.shape)
+# # print(descs[:,-1])
