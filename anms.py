@@ -31,10 +31,10 @@ def anms(cimg, max_pts):
 
   # set non-cornor element to 0
   filtered_vect_cimg = vect_cimg.copy()
-  filtered_vect_cimg[filtered_vect_cimg < np.max(vect_cimg)*0.1] = 0
+  filtered_vect_cimg[filtered_vect_cimg < np.max(vect_cimg)*0.01] = 0
   if np.sum(filtered_vect_cimg) == 0:
-
     print("you choose the first threshold too high, change it to a smaller value")
+
   #
   coor_x_list = list()
   coor_y_list = list()
