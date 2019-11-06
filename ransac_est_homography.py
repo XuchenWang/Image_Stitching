@@ -49,7 +49,7 @@ def ransac_est_homography(x1, y1, x2, y2, thresh):  # x1, y1, x2, y2 should be n
         if sum(curr_inlier_ind) > sum(inlier_ind):
             inlier_ind = curr_inlier_ind
             H = curr_H
-      
+
     return H, inlier_ind
 
 
