@@ -38,8 +38,6 @@ def feat_desc(img, x, y):
   for i in range(N):
     x_cor = x[i]
     y_cor = y[i]
-    # if i < 2: #testing
-    #   print("=========",i)
     desc_col = oneDesc(x_cor, y_cor, e)   #get one column for descs
     descs[:,i] = desc_col
 
@@ -59,7 +57,7 @@ def oneDesc(x_cor, y_cor, e):
     for j in range(8):
       x = x_start + j*5
       # print("x:", x)
-      # print(e[y:y+5, x:x+5])
+      # print(y,'-',y+5,'-',x,'-',x+5)
       max_mag = np.amax(e[y:y+5, x:x+5])
       desc_col.append(max_mag)
 
@@ -67,7 +65,7 @@ def oneDesc(x_cor, y_cor, e):
   desc_col = (desc_col - desc_col.mean()) / desc_col.std()
   return desc_col
 
-#
+
 # I = np.array(Image.open("test.jpg").convert('RGB'))
 # im_gray = rgb2gray(I)
 # cimg = corner_detector(im_gray)

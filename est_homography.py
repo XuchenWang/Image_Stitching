@@ -25,7 +25,7 @@ def est_homography(x, y, X, Y):
   i = 0
   while i < N:
     a = np.array([x[i], y[i], 1]).reshape(-1, 3)
-    c = np.array([[X[i]], [Y[i]]])
+    c = np.array([X[i], Y[i]])
     d = - c * a
 
     A[2 * i, 0 : 3], A[2 * i + 1, 3 : 6]= a, a
@@ -35,7 +35,7 @@ def est_homography(x, y, X, Y):
   
   # compute the solution of A
   U, s, V = np.linalg.svd(A, full_matrices=True)
-  h = V[8, :]
+  h = V[8, :]/V[8,8]
   H = h.reshape(3, 3)
 
   return H

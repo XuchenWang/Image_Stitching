@@ -31,7 +31,7 @@ def feat_match(descs1, descs2):
 
   for i in range(N1):
   # for i in range(5):  #testing
-    print('==========N1',i)
+  #   print('==========N1',i)
     match_dist = np.zeros([N2,])
     curr_descs1 = descs1[:,i]
 
@@ -46,15 +46,16 @@ def feat_match(descs1, descs2):
     # print('match_dist: ', match_dist[:10])
     minValue = min(match_dist)
     minIndex = np.argmin(match_dist)
-    match_dist = np.delete(match_dist, minValue)
+    # match_dist = np.delete(match_dist, minValue)
+    match_dist = list(value for value in match_dist if value != minValue)
     second_minValue = min(match_dist)
-    print('two Value:', minValue,  second_minValue)
+    # print('two Value:', minValue,  second_minValue)
     if (minValue/(second_minValue+0.0000001)) < 0.6: # could also be 0.6
       match[i] = minIndex
     else:
       match[i] = -1
 
-  print('match: ', match)
+  # print('match: ', match)
   return match
 
 
