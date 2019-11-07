@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from feat_desc import feat_desc
 from feat_match import feat_match
 from ransac_est_homography import ransac_est_homography
+from mymosaic import mymosaic
 
 if __name__ == '__main__':
     file_name1 = "test.jpg"
@@ -85,7 +86,6 @@ if __name__ == '__main__':
 
 
     # mosaicing
-
 
 
 
