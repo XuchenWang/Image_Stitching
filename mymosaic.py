@@ -22,6 +22,8 @@ from ransac_est_homography import ransac_est_homography
 from scipy.spatial import Delaunay
 from PIL import Image
 import matplotlib.pyplot as plt
+import scipy.misc
+import cv2
 
 def mymosaic(img_input):
   # Your Code Here
@@ -33,37 +35,50 @@ def mymosaic(img_input):
     img1 = oneMosaic(img1,img2)
 
   img_mosaic = img1
+  scipy.misc.imsave('ImageStitchingResult.jpg', img_mosaic)
   return img_mosaic
 
 
 def oneMosaic(img1, img2): # input should be gray images
+  # corner detector
   im_gray1 = rgb2gray(img1)
   im_gray2 = rgb2gray(img2)
   cimg1 = corner_detector(im_gray1)
   cimg2 = corner_detector(im_gray2)
 
+  # PLOTTING: CORNER HARRIS
+  I_copy = img1.copy()
+  I_copy[cimg1>0]=[255,0,0]
+  plt.imshow(I_copy)
+  plt.show()
+  I_copy = img2.copy()
+  I_copy[cimg2>0]=[255,0,0]
+  plt.imshow(I_copy)
+  plt.show()
+
+  # anms
   max_pts1 = 200 #need to be adjust to different images
   x1,y1,rmax1 = anms(cimg1, max_pts1)
   max_pts2 = 200
   x2,y2,rmax2 = anms(cimg2, max_pts2)
 
 
-        # testing:printing image
-  I_copy = I1.copy()
+  # PLOTTING: ANMS
+  I_copy = img1.copy()
   I_copy[y1,x1]=[0,0,255]
   plt.imshow(I_copy)
   plt.show()
-  I_copy = I2.copy()
+  I_copy = img2.copy()
   I_copy[y2,x2]=[0,0,255]
   plt.imshow(I_copy)
   plt.show()
 
 
-    # feat_desc
+  # feat_desc
   descs1 = feat_desc(im_gray1, x1.flatten(), y1.flatten())
   descs2 = feat_desc(im_gray2, x2.flatten(), y2.flatten())
 
-    # feat_match
+  # feat_match
   final_match1 = []
   final_match2 = []
   match1 = feat_match(descs1,descs2)
@@ -73,11 +88,8 @@ def oneMosaic(img1, img2): # input should be gray images
           final_match1.append(ind)
           final_match2.append(int(value))
 
-  print('final_match1',final_match1)
-  print('final_match2',final_match2)
 
-
-    # ransac
+  # ransac
   thresh = 0.5
   x1 = x1[final_match1]
   # print(type())
@@ -86,9 +98,9 @@ def oneMosaic(img1, img2): # input should be gray images
   y2 = y2[final_match2]
   H, inlier_ind = ransac_est_homography(x2, y2, x1, y1, thresh)
 
-# testing: printing image
-  I_copy1 = I1.copy()
-  I_copy2 = I2.copy()
+  # PLOTTING: MATCHING
+  I_copy1 = img1.copy()
+  I_copy2 = img2.copy()
   x1_in = x1[inlier_ind]
   y1_in = y1[inlier_ind]
   x2_in = x2[inlier_ind]
@@ -102,12 +114,25 @@ def oneMosaic(img1, img2): # input should be gray images
   I_copy2[y2_in,x2_in]=[255,0,0]
   I_copy1[y1_out,x1_out]=[0,0,255]
   I_copy2[y2_out,x2_out]=[0,0,255]
-  plt.imshow(I_copy1)
-  plt.show()
-  plt.imshow(I_copy2)
+
+  H1, W1= I_copy1.shape[:2]
+  H2, W2= I_copy2.shape[:2]
+  matchPlot = np.zeros((max(H1, H2), W1+W2,3), np.uint8)
+  matchPlot[:H1, :W1,:3] = I_copy1
+  matchPlot[:H2, W1:W1+W2,:3] = I_copy2
+  x2_in = x2_in+W1
+  plt.imshow(matchPlot)
   plt.show()
 
-  #mosaicing img2 to img1
+  points1 = list(zip(x1_in,y1_in))
+  points2 = list(zip(x2_in,y2_in))
+  for point1, point2 in list(zip(points1, points2)):
+      matchPlot = cv2.line(matchPlot, point1, point2, [255,0, 0], 1)
+  plt.imshow(matchPlot)
+  plt.show()
+
+
+  # mosaicing img2 to img1
   Himg, Wimg, _ = img2.shape
   # indicate 4 augmented corner point in img2
   four_corner_1 = np.array([0,0,1])
@@ -142,13 +167,9 @@ def oneMosaic(img1, img2): # input should be gray images
   mapback_points_norm_y = mapback_points_norm[1,:].reshape(-1,1)
   mapback_points_norm_x = np.round(mapback_points_norm_x).astype(int) #?
   mapback_points_norm_y = np.round(mapback_points_norm_y).astype(int) #?
-
-
-
   # mesh_mapback_x, mesh_mapback_y = np.meshgrid(mapback_points_norm_x, mapback_points_norm_y)
 
   # find the interp value for 3 channel
-
   interp_val0 = interp2(img2[:,:,0], mapback_points_norm_x, mapback_points_norm_y)
   interp_val1 = interp2(img2[:,:,1], mapback_points_norm_x, mapback_points_norm_y)
   interp_val2 = interp2(img2[:,:,2], mapback_points_norm_x, mapback_points_norm_y)
@@ -163,9 +184,6 @@ def oneMosaic(img1, img2): # input should be gray images
 
   resultImage = img1.copy()
   resultImage = np.pad(resultImage, ((pad_y, pad_y), (pad_x, pad_x),(0,0)), 'constant')
-  plt.imshow(resultImage)
-  plt.show()
-  resultImage = resultImage
   plt.imshow(resultImage)
   plt.show()
   in_polygen_points_x = in_polygen_points[:,0].flatten() + pad_x
@@ -242,7 +260,10 @@ def oneMosaic(img1, img2): # input should be gray images
 
 if __name__ == '__main__':
   I1 = np.array(Image.open("left.jpg").convert('RGB'))
+  I1 = scipy.misc.imresize(I1,[150,200])
   I2 = np.array(Image.open("middle.jpg").convert('RGB'))
-
+  I2 = scipy.misc.imresize(I2,[150,200])
+  # I3 = np.array(Image.open("right.jpg").convert('RGB'))
+  # I3 = scipy.misc.imresize(I3,[150,200])
   input_img = [I1,I2]
   mymosaic(input_img)
