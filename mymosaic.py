@@ -158,22 +158,55 @@ def oneMosaic(img1, img2): # input should be gray images
     # np.hstack((in_polygen_points,interp_val0,interp_val1,interp_val2))
 
   # padding + plotting two images together
+  pad_x = 2*Wimg
+  pad_y = 2*Himg
+
   resultImage = img1.copy()
-  resultImage = np.pad(resultImage, ((2*Himg, 2*Himg), (2*Wimg, 2*Wimg),(0,0)), 'constant')
+  resultImage = np.pad(resultImage, ((pad_y, pad_y), (pad_x, pad_x),(0,0)), 'constant')
   plt.imshow(resultImage)
   plt.show()
   resultImage = resultImage
   plt.imshow(resultImage)
   plt.show()
-  in_polygen_points_x = in_polygen_points[:,0].flatten() + 2*Wimg
-  in_polygen_points_y = in_polygen_points[:,1].flatten() + 2*Himg
+  in_polygen_points_x = in_polygen_points[:,0].flatten() + pad_x
+  in_polygen_points_y = in_polygen_points[:,1].flatten() + pad_y
+
   resultImage[:,:,0][in_polygen_points_y, in_polygen_points_x] = interp_val0.flatten()
   resultImage[:,:,1][in_polygen_points_y, in_polygen_points_x] = interp_val1.flatten()
   resultImage[:,:,2][in_polygen_points_y, in_polygen_points_x] = interp_val2.flatten()
   plt.imshow(resultImage)
   plt.show()
 
+
+  #crop image
+  # find the square which contain the whole img
+
+  Himg1, Wimg1, _ = img1.shape
+  # indicate 4 corner point in img1
+  img1_four_corner_1 = np.array([0,0])
+  img1_four_corner_2 = np.array([Wimg1-1,0])
+  img1_four_corner_3 = np.array([0,Himg1-1])
+  img1_four_corner_4 = np.array([Wimg1-1,Himg1-1])
+  four_corner_aug_array = np.vstack((img1_four_corner_1,img1_four_corner_2,\
+                                     img1_four_corner_3,img1_four_corner_4))
+
+  img2_boundary_map_coor = four_corner_array
+
+  boundary_coor = np.vstack((four_corner_aug_array,img2_boundary_map_coor)).T
+  boundary_coor[0,:] = boundary_coor[0,:]+pad_x
+  boundary_coor[1,:] = boundary_coor[1,:]+pad_y
+  boundary_x_min = np.min(boundary_coor[0,:])
+  boundary_x_max = np.max(boundary_coor[0,:])
+  boundary_y_min = np.min(boundary_coor[1,:])
+  boundary_y_max = np.max(boundary_coor[1,:])
+
+  resultImage = resultImage[boundary_y_min:boundary_y_max+1,\
+                boundary_x_min:boundary_x_max+1,:]
+  plt.imshow(resultImage)
+  plt.show()
   return resultImage
+
+
 
 if __name__ == '__main__':
   I1 = np.array(Image.open("left.jpg").convert('RGB'))
