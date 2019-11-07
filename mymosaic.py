@@ -174,13 +174,9 @@ def oneMosaic(img1, img2): # input should be gray images
   resultImage[:,:,0][in_polygen_points_y, in_polygen_points_x] = interp_val0.flatten()
   resultImage[:,:,1][in_polygen_points_y, in_polygen_points_x] = interp_val1.flatten()
   resultImage[:,:,2][in_polygen_points_y, in_polygen_points_x] = interp_val2.flatten()
-  plt.imshow(resultImage)
-  plt.show()
 
-
-  #crop image
-  # find the square which contain the whole img
-
+  # alpha-blending the overlapping parts
+  # identify the overlapping area
   Himg1, Wimg1, _ = img1.shape
   # indicate 4 corner point in img1
   img1_four_corner_1 = np.array([0,0])
@@ -190,9 +186,45 @@ def oneMosaic(img1, img2): # input should be gray images
   four_corner_aug_array = np.vstack((img1_four_corner_1,img1_four_corner_2,\
                                      img1_four_corner_3,img1_four_corner_4))
 
+  img1_bound_x_min = np.min(four_corner_aug_array[:,0])
+  img1_bound_x_max = np.max(four_corner_aug_array[:,0])
+  img1_bound_y_min = np.min(four_corner_aug_array[:,1])
+  img1_bound_y_max = np.max(four_corner_aug_array[:,1])
+
+
+  logic_x = np.logical_and(img1_bound_x_min<=in_polygen_points[:,0].flatten(),\
+                         in_polygen_points[:,0].flatten()<=img1_bound_x_max)
+
+  logic_y = np.logical_and(img1_bound_y_min<=in_polygen_points[:,1].flatten(),\
+                         in_polygen_points[:,1].flatten()<=img1_bound_y_max)
+  logic = np.logical_and(logic_x,logic_y)
+  index_overlap = np.array(np.where(logic)).flatten()
+
+
+  # overlapping part -0.5 of img1 and img2_interp
+
+  resultImage[:,:,0][in_polygen_points_y[index_overlap],in_polygen_points_x[index_overlap]] = \
+    (np.array(resultImage[:,:,0][in_polygen_points_y[index_overlap],in_polygen_points_x[index_overlap]])*0.8).astype(np.uint8)
+  resultImage[:,:,1][in_polygen_points_y[index_overlap],in_polygen_points_x[index_overlap]] = \
+    (np.array(resultImage[:,:,1][in_polygen_points_y[index_overlap],in_polygen_points_x[index_overlap]])*0.8).astype(np.uint8)
+  resultImage[:,:,2][in_polygen_points_y[index_overlap],in_polygen_points_x[index_overlap]] = \
+    (np.array(resultImage[:,:,2][in_polygen_points_y[index_overlap],in_polygen_points_x[index_overlap]])*0.8).astype(np.uint8)
+
+
+  plt.imshow(resultImage)
+  plt.show()
+
+
+  #crop image
+  # find the square which contain the whole img
+
+  Himg1, Wimg1, _ = img1.shape
+  # indicate 4 corner point in img1
+  img1_boundary_map_coor = four_corner_aug_array
+
   img2_boundary_map_coor = four_corner_array
 
-  boundary_coor = np.vstack((four_corner_aug_array,img2_boundary_map_coor)).T
+  boundary_coor = np.vstack((img1_boundary_map_coor,img2_boundary_map_coor)).T
   boundary_coor[0,:] = boundary_coor[0,:]+pad_x
   boundary_coor[1,:] = boundary_coor[1,:]+pad_y
   boundary_x_min = np.min(boundary_coor[0,:])
