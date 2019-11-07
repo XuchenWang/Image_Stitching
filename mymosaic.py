@@ -42,10 +42,22 @@ def oneMosaic(img1, img2): # input should be gray images
   cimg1 = corner_detector(im_gray1)
   cimg2 = corner_detector(im_gray2)
 
-  max_pts1 = 50 #need to be adjust to different images
+  max_pts1 = 200 #need to be adjust to different images
   x1,y1,rmax1 = anms(cimg1, max_pts1)
-  max_pts2 = 100
+  max_pts2 = 200
   x2,y2,rmax2 = anms(cimg2, max_pts2)
+
+
+        # testing:printing image
+  I_copy = I1.copy()
+  I_copy[y1,x1]=[0,0,255]
+  plt.imshow(I_copy)
+  plt.show()
+  I_copy = I2.copy()
+  I_copy[y2,x2]=[0,0,255]
+  plt.imshow(I_copy)
+  plt.show()
+
 
     # feat_desc
   descs1 = feat_desc(im_gray1, x1.flatten(), y1.flatten())
@@ -61,6 +73,9 @@ def oneMosaic(img1, img2): # input should be gray images
           final_match1.append(ind)
           final_match2.append(int(value))
 
+  print('final_match1',final_match1)
+  print('final_match2',final_match2)
+
 
     # ransac
   thresh = 0.5
@@ -71,7 +86,26 @@ def oneMosaic(img1, img2): # input should be gray images
   y2 = y2[final_match2]
   H, inlier_ind = ransac_est_homography(x2, y2, x1, y1, thresh)
 
+# testing: printing image
+  I_copy1 = I1.copy()
+  I_copy2 = I2.copy()
+  x1_in = x1[inlier_ind]
+  y1_in = y1[inlier_ind]
+  x2_in = x2[inlier_ind]
+  y2_in = y2[inlier_ind]
+  x1_out = x1[inlier_ind==False]
+  y1_out = y1[inlier_ind==False]
+  x2_out = x2[inlier_ind==False]
+  y2_out = y2[inlier_ind==False]
 
+  I_copy1[y1_in,x1_in]=[255,0,0]
+  I_copy2[y2_in,x2_in]=[255,0,0]
+  I_copy1[y1_out,x1_out]=[0,0,255]
+  I_copy2[y2_out,x2_out]=[0,0,255]
+  plt.imshow(I_copy1)
+  plt.show()
+  plt.imshow(I_copy2)
+  plt.show()
 
   #mosaicing img2 to img1
   Himg, Wimg, _ = img2.shape
@@ -125,14 +159,14 @@ def oneMosaic(img1, img2): # input should be gray images
 
   # padding + plotting two images together
   resultImage = img1.copy()
-  resultImage = np.pad(resultImage, ((Himg, Himg), (Wimg, Wimg),(0,0)), 'constant')
+  resultImage = np.pad(resultImage, ((2*Himg, 2*Himg), (2*Wimg, 2*Wimg),(0,0)), 'constant')
   plt.imshow(resultImage)
   plt.show()
   resultImage = resultImage
   plt.imshow(resultImage)
   plt.show()
-  in_polygen_points_x = in_polygen_points[:,0].flatten() + Wimg
-  in_polygen_points_y = in_polygen_points[:,1].flatten() + Himg
+  in_polygen_points_x = in_polygen_points[:,0].flatten() + 2*Wimg
+  in_polygen_points_y = in_polygen_points[:,1].flatten() + 2*Himg
   resultImage[:,:,0][in_polygen_points_y, in_polygen_points_x] = interp_val0.flatten()
   resultImage[:,:,1][in_polygen_points_y, in_polygen_points_x] = interp_val1.flatten()
   resultImage[:,:,2][in_polygen_points_y, in_polygen_points_x] = interp_val2.flatten()
@@ -142,7 +176,8 @@ def oneMosaic(img1, img2): # input should be gray images
   return resultImage
 
 if __name__ == '__main__':
-  I1 = np.array(Image.open("test.jpg").convert('RGB'))
-  I2 = np.array(Image.open("test1.jpg").convert('RGB'))
+  I1 = np.array(Image.open("left.jpg").convert('RGB'))
+  I2 = np.array(Image.open("middle.jpg").convert('RGB'))
+
   input_img = [I1,I2]
   mymosaic(input_img)

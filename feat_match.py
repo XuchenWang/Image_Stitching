@@ -50,7 +50,7 @@ def feat_match(descs1, descs2):
     match_dist = list(value for value in match_dist if value != minValue)
     second_minValue = min(match_dist)
     # print('two Value:', minValue,  second_minValue)
-    if (minValue/(second_minValue+0.0000001)) < 0.6: # could also be 0.6
+    if (minValue/(second_minValue+0.0000001)) < 0.9: # could also be 0.6
       match[i] = minIndex
     else:
       match[i] = -1
