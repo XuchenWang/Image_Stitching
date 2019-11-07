@@ -21,6 +21,7 @@ from feat_match import feat_match
 from ransac_est_homography import ransac_est_homography
 from scipy.spatial import Delaunay
 from PIL import Image
+import matplotlib.pyplot as plt
 
 def mymosaic(img_input):
   # Your Code Here
@@ -62,22 +63,23 @@ def oneMosaic(img1, img2): # input should be gray images
 
 
     # ransac
-  thresh = 100
+  thresh = 0.5
   x1 = x1[final_match1]
   # print(type())
   y1 = y1[final_match1]
   x2 = x2[final_match2]
   y2 = y2[final_match2]
-  H, inlier_ind = ransac_est_homography(x1, y1, x2, y2, thresh)
+  H, inlier_ind = ransac_est_homography(x2, y2, x1, y1, thresh)
+
 
 
   #mosaicing img2 to img1
   Himg, Wimg, _ = img2.shape
   # indicate 4 augmented corner point in img2
   four_corner_1 = np.array([0,0,1])
-  four_corner_2 = np.array([0,Wimg-1,1])
-  four_corner_3 = np.array([Himg-1,0,1])
-  four_corner_4 = np.array([Himg-1,Wimg-1,1])
+  four_corner_2 = np.array([Wimg-1,0,1])
+  four_corner_3 = np.array([0,Himg-1,1])
+  four_corner_4 = np.array([Wimg-1,Himg-1,1])
   four_corner_aug_array = np.vstack((four_corner_1,four_corner_2,four_corner_3,four_corner_4)).T
   assert four_corner_aug_array.shape == (3,4)
   # get mapped 4 points in the img1(no pad yet)
@@ -104,6 +106,10 @@ def oneMosaic(img1, img2): # input should be gray images
   mapback_points_norm = mapback_points/mapback_points[2,]
   mapback_points_norm_x = mapback_points_norm[0,:].reshape(-1,1)
   mapback_points_norm_y = mapback_points_norm[1,:].reshape(-1,1)
+  mapback_points_norm_x = np.round(mapback_points_norm_x).astype(int) #?
+  mapback_points_norm_y = np.round(mapback_points_norm_y).astype(int) #?
+
+
 
   # mesh_mapback_x, mesh_mapback_y = np.meshgrid(mapback_points_norm_x, mapback_points_norm_y)
 
@@ -114,20 +120,24 @@ def oneMosaic(img1, img2): # input should be gray images
   interp_val2 = interp2(img2[:,:,2], mapback_points_norm_x, mapback_points_norm_y)
 
   # attach the channel value
-  in_polygen_points_with_channel_value = \
-    np.hstack((in_polygen_points,interp_val0,interp_val1,interp_val2))
+  # in_polygen_points_with_channel_value = \
+    # np.hstack((in_polygen_points,interp_val0,interp_val1,interp_val2))
 
-  print()
-
-
-
-
-
+  # padding + plotting two images together
   resultImage = img1.copy()
-  np.pad(resultImage, ((H, H), (W, W)), 'constant')
-
-
-
+  resultImage = np.pad(resultImage, ((Himg, Himg), (Wimg, Wimg),(0,0)), 'constant')
+  plt.imshow(resultImage)
+  plt.show()
+  resultImage = resultImage
+  plt.imshow(resultImage)
+  plt.show()
+  in_polygen_points_x = in_polygen_points[:,0].flatten() + Wimg
+  in_polygen_points_y = in_polygen_points[:,1].flatten() + Himg
+  resultImage[:,:,0][in_polygen_points_y, in_polygen_points_x] = interp_val0.flatten()
+  resultImage[:,:,1][in_polygen_points_y, in_polygen_points_x] = interp_val1.flatten()
+  resultImage[:,:,2][in_polygen_points_y, in_polygen_points_x] = interp_val2.flatten()
+  plt.imshow(resultImage)
+  plt.show()
 
   return resultImage
 
