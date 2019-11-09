@@ -20,7 +20,6 @@ from feat_desc import feat_desc
 from feat_match import feat_match
 from ransac_est_homography import ransac_est_homography
 from scipy.spatial import Delaunay
-from PIL import Image
 import matplotlib.pyplot as plt
 import scipy.misc
 import cv2
@@ -49,8 +48,6 @@ def matching_plot(img_target, img_stitching, x_tar, y_tar, x_sti, y_sti, inlier_
   matchPlot[:H1, :W1, :3] = I_copy1
   matchPlot[:H2, W1:W1 + W2, :3] = I_copy2
   x2_in = x2_in + W1
-  plt.imshow(matchPlot)
-  plt.show()
 
   points1 = list(zip(x1_in, y1_in))
   points2 = list(zip(x2_in, y2_in))
@@ -135,17 +132,17 @@ def oneMosaic(img0, img1, img2): # put img2 onto img1 then put img3 onto img1
 
   # PLOTTING: ANMS
   I_copy = img0.copy()
-  I_copy[y0, x0] = [0, 0, 255]
+  I_copy[y0, x0] = [255,0, 0]
   plt.imshow(I_copy)
   plt.show()
 
   I_copy = img1.copy()
-  I_copy[y1,x1]=[0,0,255]
+  I_copy[y1,x1]=[255,0,0]
   plt.imshow(I_copy)
   plt.show()
 
   I_copy = img2.copy()
-  I_copy[y2,x2]=[0,0,255]
+  I_copy[y2,x2]=[255,0,0]
   plt.imshow(I_copy)
   plt.show()
 
@@ -329,14 +326,3 @@ def oneMosaic(img0, img1, img2): # put img2 onto img1 then put img3 onto img1
   plt.show()
   return resultImage
 
-
-
-if __name__ == '__main__':
-  I0 = np.array(Image.open("left.jpg").convert('RGB'))
-  I0 = scipy.misc.imresize(I0,[150,200])
-  I1 = np.array(Image.open("middle.jpg").convert('RGB'))
-  I1 = scipy.misc.imresize(I1,[150,200])
-  I2 = np.array(Image.open("right.jpg").convert('RGB'))
-  I2 = scipy.misc.imresize(I2,[150,200])
-  input_img = [I0,I1,I2]
-  mymosaic(input_img)

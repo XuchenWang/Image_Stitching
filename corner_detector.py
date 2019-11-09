@@ -14,11 +14,8 @@
 from cv2 import cornerHarris
 import numpy as np
 def corner_detector(img):
-  # Your Code Here
-  # print(type(img[0,0]))
   cimg = cornerHarris(img, 10, 3, 0.001)
   H,W = cimg.shape
-  # set non-cornor element to 0
   vect_cimg = cimg.flatten()
   vect_cimg[vect_cimg < np.max(vect_cimg)*0.01] = 0
   cimg = vect_cimg.reshape(H,W)

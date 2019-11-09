@@ -17,11 +17,11 @@
 
 import numpy as np
 import random
-from math import sqrt
 from est_homography import est_homography
 
 
 def ransac_est_homography(x1, y1, x2, y2, thresh):  # x1, y1, x2, y2 should be numpy array
+    np.random.seed(0)
     k = 5000
     N = len(x1)
     H = np.zeros([3, 3])
@@ -53,11 +53,3 @@ def ransac_est_homography(x1, y1, x2, y2, thresh):  # x1, y1, x2, y2 should be n
     return H, inlier_ind
 
 
-# if __name__ == '__main__':
-#     x = np.array([1,2,3,4]).reshape(-1,1)
-#     y = np.array([2,3,4,5]).reshape(-1,1)
-#     X = np.array([1,2,3,4]).reshape(-1,1)
-#     Y = np.array([2,3,4,5]).reshape(-1,1)
-#     thresh = 0.5
-#     H, inlier_ind = ransac_est_homography(x, y, X, Y, thresh)
-#     print(H,inlier_ind)

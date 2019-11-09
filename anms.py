@@ -20,7 +20,6 @@ def anms(cimg, max_pts):
   H, W = cimg.shape
   # corner_threshold is designed to filter out
   # the corner we want to consider.
-  # corner_threshold = 0.00001
   # up_range is only consider the filtered corner
   # in this range [1, up_range]
   up_range = 1.5
@@ -39,7 +38,6 @@ def anms(cimg, max_pts):
   coor_x_list = list()
   coor_y_list = list()
   r_min_list = list()
-  # coor_r_matrix = np.array([np.inf,np.inf,np.inf]).reshape(-1,1)
 
   for indx, element in enumerate(filtered_vect_cimg):
     if element == 0:
@@ -85,7 +83,3 @@ def anms(cimg, max_pts):
   return x, y, rmax
 
 
-if __name__ == '__main__':
-    cimg = np.array([[1,1.01],[1.1,0]])
-    max_pts = 100
-    x,y,rmax = anms(cimg, max_pts)
