@@ -171,54 +171,58 @@ def oneMosaic(img0, img1, img2): # put img2 onto img1 then put img3 onto img1
   matching_plot(img1, img2, x12_aft_mat, y12_aft_mat, x2_aft_mat, y2_aft_mat, inlier_ind1)
 
   # mosaicing img2 to img1
-  Himg, Wimg, _ = img2.shape
-  # indicate 4 augmented corner point in img2
-  four_corner_1 = np.array([0,0,1])
-  four_corner_2 = np.array([Wimg-1,0,1])
-  four_corner_3 = np.array([0,Himg-1,1])
-  four_corner_4 = np.array([Wimg-1,Himg-1,1])
-  four_corner_aug_array = np.vstack((four_corner_1,four_corner_2,four_corner_3,four_corner_4)).T
-  assert four_corner_aug_array.shape == (3,4)
-  # get mapped 4 points in the img1(no pad yet)
-  mapped_points = H @ four_corner_aug_array
-  mapped_points_norm = np.round(mapped_points/mapped_points[2,]).astype(int)
-  # mashgrid to get all the coor in a 4 sided area(no pad yet)
-  x_min = np.min(mapped_points_norm[0,:])
-  x_max = np.max(mapped_points_norm[0,:])
-  y_min = np.min(mapped_points_norm[1,:])
-  y_max = np.max(mapped_points_norm[1,:])
+  def mosaicing_mapping(img_sti, H):
+      Himg, Wimg, _ = img_sti.shape
+      # indicate 4 augmented corner point in img2
+      four_corner_1 = np.array([0,0,1])
+      four_corner_2 = np.array([Wimg-1,0,1])
+      four_corner_3 = np.array([0,Himg-1,1])
+      four_corner_4 = np.array([Wimg-1,Himg-1,1])
+      four_corner_aug_array = np.vstack((four_corner_1,four_corner_2,four_corner_3,four_corner_4)).T
+      assert four_corner_aug_array.shape == (3,4)
+      # get mapped 4 points in the img1(no pad yet)
+      mapped_points = H @ four_corner_aug_array
+      mapped_points_norm = np.round(mapped_points/mapped_points[2,]).astype(int)
+      # mashgrid to get all the coor in a 4 sided area(no pad yet)
+      x_min = np.min(mapped_points_norm[0,:])
+      x_max = np.max(mapped_points_norm[0,:])
+      y_min = np.min(mapped_points_norm[1,:])
+      y_max = np.max(mapped_points_norm[1,:])
 
-  x, y = np.meshgrid(np.arange(x_min,x_max+1), np.arange(y_min,y_max+1))
-  square_points_matrix = np.vstack((x.flatten(), y.flatten())).T
+      x, y = np.meshgrid(np.arange(x_min,x_max+1), np.arange(y_min,y_max+1))
+      square_points_matrix = np.vstack((x.flatten(), y.flatten())).T
 
-  # construct triangulation
-  four_corner_array = mapped_points_norm.T[:,0:2]
-  Tri = Delaunay(four_corner_array)
-  # index
-  in_polygen_index = Tri.find_simplex(square_points_matrix)>=0
-  in_polygen_points = square_points_matrix[in_polygen_index,:]
-  # map back to the source img
-  mapback_points = np.linalg.inv(H) @ \
-                   np.hstack((in_polygen_points,np.ones((in_polygen_points.shape[0],1)))).T
-  mapback_points_norm = mapback_points/mapback_points[2,]
-  mapback_points_norm_x = mapback_points_norm[0,:].reshape(-1,1)
-  mapback_points_norm_y = mapback_points_norm[1,:].reshape(-1,1)
-  mapback_points_norm_x = np.round(mapback_points_norm_x).astype(int) #?
-  mapback_points_norm_y = np.round(mapback_points_norm_y).astype(int) #?
-  # mesh_mapback_x, mesh_mapback_y = np.meshgrid(mapback_points_norm_x, mapback_points_norm_y)
+      # construct triangulation
+      four_corner_array = mapped_points_norm.T[:,0:2]
+      Tri = Delaunay(four_corner_array)
+      # index
+      in_polygen_index = Tri.find_simplex(square_points_matrix)>=0
+      in_polygen_points = square_points_matrix[in_polygen_index,:]
+      # map back to the source img
+      mapback_points = np.linalg.inv(H) @ \
+                       np.hstack((in_polygen_points,np.ones((in_polygen_points.shape[0],1)))).T
+      mapback_points_norm = mapback_points/mapback_points[2,]
+      mapback_points_norm_x = mapback_points_norm[0,:].reshape(-1,1)
+      mapback_points_norm_y = mapback_points_norm[1,:].reshape(-1,1)
+      mapback_points_norm_x = np.round(mapback_points_norm_x).astype(int) #?
+      mapback_points_norm_y = np.round(mapback_points_norm_y).astype(int) #?
+      # mesh_mapback_x, mesh_mapback_y = np.meshgrid(mapback_points_norm_x, mapback_points_norm_y)
 
-  # find the interp value for 3 channel
-  interp_val0 = interp2(img2[:,:,0], mapback_points_norm_x, mapback_points_norm_y)
-  interp_val1 = interp2(img2[:,:,1], mapback_points_norm_x, mapback_points_norm_y)
-  interp_val2 = interp2(img2[:,:,2], mapback_points_norm_x, mapback_points_norm_y)
+      # find the interp value for 3 channel
+      interp_val0 = interp2(img_sti[:,:,0], mapback_points_norm_x, mapback_points_norm_y)
+      interp_val1 = interp2(img_sti[:,:,1], mapback_points_norm_x, mapback_points_norm_y)
+      interp_val2 = interp2(img_sti[:,:,2], mapback_points_norm_x, mapback_points_norm_y)
 
+      return four_corner_array,in_polygen_points,interp_val0,interp_val1,interp_val2
   # attach the channel value
   # in_polygen_points_with_channel_value = \
     # np.hstack((in_polygen_points,interp_val0,interp_val1,interp_val2))
 
-
+  img0_four_corner_array,img0_in_polygen_points,img0_interp_val0,img0_interp_val1,img0_interp_val2 = mosaicing_mapping(img0, H0)
+  img2_four_corner_array,img2_in_polygen_points,img2_interp_val0,img2_interp_val1,img2_interp_val2 = mosaicing_mapping(img2, H1)
 
   # padding + plotting two images together
+  Himg, Wimg, _ =  img1.shape
   pad_x = 10*Wimg
   pad_y = 10*Himg
 
@@ -226,12 +230,20 @@ def oneMosaic(img0, img1, img2): # put img2 onto img1 then put img3 onto img1
   resultImage = np.pad(resultImage, ((pad_y, pad_y), (pad_x, pad_x),(0,0)), 'constant')
   plt.imshow(resultImage)
   plt.show()
-  in_polygen_points_x = in_polygen_points[:,0].flatten() + pad_x
-  in_polygen_points_y = in_polygen_points[:,1].flatten() + pad_y
 
-  resultImage[:,:,0][in_polygen_points_y, in_polygen_points_x] = interp_val0.flatten()
-  resultImage[:,:,1][in_polygen_points_y, in_polygen_points_x] = interp_val1.flatten()
-  resultImage[:,:,2][in_polygen_points_y, in_polygen_points_x] = interp_val2.flatten()
+  img0_in_polygen_points_x = img0_in_polygen_points[:,0].flatten() + pad_x
+  img0_in_polygen_points_y = img0_in_polygen_points[:,1].flatten() + pad_y
+
+  resultImage[:,:,0][img0_in_polygen_points_y, img0_in_polygen_points_x] = img0_interp_val0.flatten()
+  resultImage[:,:,1][img0_in_polygen_points_y, img0_in_polygen_points_x] = img0_interp_val1.flatten()
+  resultImage[:,:,2][img0_in_polygen_points_y, img0_in_polygen_points_x] = img0_interp_val2.flatten()
+
+  img2_in_polygen_points_x = img2_in_polygen_points[:,0].flatten() + pad_x
+  img2_in_polygen_points_y = img2_in_polygen_points[:,1].flatten() + pad_y
+
+  resultImage[:,:,0][img2_in_polygen_points_y, img2_in_polygen_points_x] = img2_interp_val0.flatten()
+  resultImage[:,:,1][img2_in_polygen_points_y, img2_in_polygen_points_x] = img2_interp_val1.flatten()
+  resultImage[:,:,2][img2_in_polygen_points_y, img2_in_polygen_points_x] = img2_interp_val2.flatten()
 
   # alpha-blending the overlapping parts
   # identify the overlapping area
@@ -250,23 +262,43 @@ def oneMosaic(img0, img1, img2): # put img2 onto img1 then put img3 onto img1
   img1_bound_y_max = np.max(four_corner_aug_array[:,1])
 
 
-  logic_x = np.logical_and(img1_bound_x_min<=in_polygen_points[:,0].flatten(),\
-                         in_polygen_points[:,0].flatten()<=img1_bound_x_max)
+  logic_x = np.logical_and(img1_bound_x_min<=img0_in_polygen_points[:,0].flatten(),\
+                         img0_in_polygen_points[:,0].flatten()<=img1_bound_x_max)
 
-  logic_y = np.logical_and(img1_bound_y_min<=in_polygen_points[:,1].flatten(),\
-                         in_polygen_points[:,1].flatten()<=img1_bound_y_max)
+  logic_y = np.logical_and(img1_bound_y_min<=img0_in_polygen_points[:,1].flatten(),\
+                         img0_in_polygen_points[:,1].flatten()<=img1_bound_y_max)
   logic = np.logical_and(logic_x,logic_y)
   index_overlap = np.array(np.where(logic)).flatten()
 
 
   # overlapping part -0.5 of img1 and img2_interp
 
-  resultImage[:,:,0][in_polygen_points_y[index_overlap],in_polygen_points_x[index_overlap]] = \
-    (np.array(resultImage[:,:,0][in_polygen_points_y[index_overlap],in_polygen_points_x[index_overlap]])*0.8).astype(np.uint8)
-  resultImage[:,:,1][in_polygen_points_y[index_overlap],in_polygen_points_x[index_overlap]] = \
-    (np.array(resultImage[:,:,1][in_polygen_points_y[index_overlap],in_polygen_points_x[index_overlap]])*0.8).astype(np.uint8)
-  resultImage[:,:,2][in_polygen_points_y[index_overlap],in_polygen_points_x[index_overlap]] = \
-    (np.array(resultImage[:,:,2][in_polygen_points_y[index_overlap],in_polygen_points_x[index_overlap]])*0.8).astype(np.uint8)
+  resultImage[:,:,0][img0_in_polygen_points_y[index_overlap],img0_in_polygen_points_x[index_overlap]] = \
+    (np.array(resultImage[:,:,0][img0_in_polygen_points_y[index_overlap],img0_in_polygen_points_x[index_overlap]])*0.8).astype(np.uint8)
+  resultImage[:,:,1][img0_in_polygen_points_y[index_overlap],img0_in_polygen_points_x[index_overlap]] = \
+    (np.array(resultImage[:,:,1][img0_in_polygen_points_y[index_overlap],img0_in_polygen_points_x[index_overlap]])*0.8).astype(np.uint8)
+  resultImage[:,:,2][img0_in_polygen_points_y[index_overlap],img0_in_polygen_points_x[index_overlap]] = \
+    (np.array(resultImage[:,:,2][img0_in_polygen_points_y[index_overlap],img0_in_polygen_points_x[index_overlap]])*0.8).astype(np.uint8)
+
+
+  logic_x = np.logical_and(img1_bound_x_min<=img2_in_polygen_points[:,0].flatten(),\
+                         img2_in_polygen_points[:,0].flatten()<=img1_bound_x_max)
+
+  logic_y = np.logical_and(img1_bound_y_min<=img2_in_polygen_points[:,1].flatten(),\
+                         img2_in_polygen_points[:,1].flatten()<=img1_bound_y_max)
+  logic = np.logical_and(logic_x,logic_y)
+  index_overlap = np.array(np.where(logic)).flatten()
+
+
+  # overlapping part -0.5 of img1 and img2_interp
+
+  resultImage[:,:,0][img2_in_polygen_points_y[index_overlap],img2_in_polygen_points_x[index_overlap]] = \
+    (np.array(resultImage[:,:,0][img2_in_polygen_points_y[index_overlap],img2_in_polygen_points_x[index_overlap]])*0.8).astype(np.uint8)
+  resultImage[:,:,1][img2_in_polygen_points_y[index_overlap],img2_in_polygen_points_x[index_overlap]] = \
+    (np.array(resultImage[:,:,1][img2_in_polygen_points_y[index_overlap],img2_in_polygen_points_x[index_overlap]])*0.8).astype(np.uint8)
+  resultImage[:,:,2][img2_in_polygen_points_y[index_overlap],img2_in_polygen_points_x[index_overlap]] = \
+    (np.array(resultImage[:,:,2][img2_in_polygen_points_y[index_overlap],img2_in_polygen_points_x[index_overlap]])*0.8).astype(np.uint8)
+
 
 
   plt.imshow(resultImage)
@@ -280,9 +312,10 @@ def oneMosaic(img0, img1, img2): # put img2 onto img1 then put img3 onto img1
   # indicate 4 corner point in img1
   img1_boundary_map_coor = four_corner_aug_array
 
-  img2_boundary_map_coor = four_corner_array
+  img0_boundary_map_coor = img0_four_corner_array
+  img2_boundary_map_coor = img2_four_corner_array
 
-  boundary_coor = np.vstack((img1_boundary_map_coor,img2_boundary_map_coor)).T
+  boundary_coor = np.vstack((img1_boundary_map_coor,img0_boundary_map_coor,img2_boundary_map_coor)).T
   boundary_coor[0,:] = boundary_coor[0,:]+pad_x
   boundary_coor[1,:] = boundary_coor[1,:]+pad_y
   boundary_x_min = np.min(boundary_coor[0,:])
