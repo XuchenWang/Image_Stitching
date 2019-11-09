@@ -26,12 +26,12 @@ def anms(cimg, max_pts):
   up_range = 1.5
 
   # first, vectrize the ori cimg matrix
-  vect_cimg = cimg.flatten()
+  filtered_vect_cimg = cimg.flatten()
 
 
   # set non-cornor element to 0
-  filtered_vect_cimg = vect_cimg.copy()
-  filtered_vect_cimg[filtered_vect_cimg < np.max(vect_cimg)*0.01] = 0
+  # filtered_vect_cimg = vect_cimg.copy()
+  # filtered_vect_cimg[filtered_vect_cimg < np.max(vect_cimg)*0.01] = 0
   if np.sum(filtered_vect_cimg) == 0:
     print("you choose the first threshold too high, change it to a smaller value")
 
