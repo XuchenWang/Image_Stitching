@@ -22,7 +22,7 @@ from est_homography import est_homography
 
 
 def ransac_est_homography(x1, y1, x2, y2, thresh):  # x1, y1, x2, y2 should be numpy array
-    k = 1000
+    k = 5000
     N = len(x1)
     H = np.zeros([3, 3])
     ones = np.ones([N, ])

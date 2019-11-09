@@ -157,7 +157,7 @@ def oneMosaic(img0, img1, img2): # put img2 onto img1 then put img3 onto img1
 
   ### Comupute H matrix
   ## RANSAC parameter
-  thresh = 0.5
+  thresh = 0.4
 
   # feat_match img0-->img1
   x10_aft_mat,y10_aft_mat,x0_aft_mat,y0_aft_mat,H0,inlier_ind0 = feat_match_between_img(x1,y1,x0,y0,descs1,descs0,thresh)
@@ -223,8 +223,8 @@ def oneMosaic(img0, img1, img2): # put img2 onto img1 then put img3 onto img1
 
   # padding + plotting two images together
   Himg, Wimg, _ =  img1.shape
-  pad_x = 10*Wimg
-  pad_y = 10*Himg
+  pad_x = 20*Wimg
+  pad_y = 20*Himg
 
   resultImage = img1.copy()
   resultImage = np.pad(resultImage, ((pad_y, pad_y), (pad_x, pad_x),(0,0)), 'constant')
